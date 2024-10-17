@@ -23,42 +23,51 @@ var pullCmd = &cobra.Command{
 	Args:  cobra.MatchAll(cobra.ExactArgs(1)),
 	Run: func(cmd *cobra.Command, args []string) {
 		var manifest types.Manifest
-		if manifestCid != "" {
-			stream, err := download(manifestCid)
-			if err != nil {
-				log.Fatal(err)
-			}
 
-			data, err := io.ReadAll(stream)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			err = json.Unmarshal(data, &manifest)
-			if err != nil {
-				log.Fatal(err)
-			}
-			mp := server.ParseModelPath(args[0])
-			p, err := mp.GetManifestPath()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			log.Println("Storing manifest at", p)
-
-			err = os.MkdirAll(filepath.Dir(p), 0o755)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			err = os.WriteFile(p, data, 0o644)
+		var err error
+		if manifestCid == "" {
+			manifestCid, err = registry.GetCID(args[0])
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 
+		log.Println("Found manifest CID in registry:", manifestCid)
+
+		stream, err := download(manifestCid)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		data, err := io.ReadAll(stream)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = json.Unmarshal(data, &manifest)
+		if err != nil {
+			log.Fatal(err)
+		}
+		mp := server.ParseModelPath(args[0])
+		p, err := mp.GetManifestPath()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Println("Storing manifest at", p)
+
+		err = os.MkdirAll(filepath.Dir(p), 0o755)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = os.WriteFile(p, data, 0o644)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		log.Println("Downloading config", manifest.Config.Digest, "(CID:", manifest.Config.CID, ")")
-		err := downloadLayer(manifest.Config)
+		err = downloadLayer(manifest.Config)
 		if err != nil {
 			log.Fatal(err)
 		}

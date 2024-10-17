@@ -41,10 +41,10 @@ sudo rm -rf /usr/share/ollama/.ollama/*
 ollama list
 ```
 
-Try to pull from Codex - replace the `${CID}` with actual CID returned from the command above
+Try to pull from Codex - the CID of the model will be searched in a [model registry]. If it fails, you can provide the CID in an option `--manifest-cid=${CID}`
 
 ```
-./collama.sh pull qwen:0.5b --manifest-cid=${CID}
+./collama.sh pull qwen:0.5b
 ```
 
 You should be able to list the `qwen` model again
@@ -52,3 +52,9 @@ You should be able to list the `qwen` model again
 ```
 ollama list
 ```
+
+## Ollama Codex Model Registry
+
+Since we need the CID to be able to pull the manifest from Codex, but there is no simple and straightforward way to have a decentralized key/value store maintaining the mapping of `model name -> CID`, we go around this by hosting a static "[model registry](https://app.radicle.xyz/nodes/seed.radicle.garden/rad:z4UyZVeb2hy7oKxZ1mUgR1ujAzFsy)" on [Radicle](https://radicle.xyz). 
+
+The registry manifest is automatically updated (downloaded) if the registry file is older than an hour. You can customize the registry URL by various config options (Radicle API URL, repository ID, git ref, filename) and hence easily provide/use your own registry.
